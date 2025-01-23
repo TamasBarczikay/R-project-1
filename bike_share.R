@@ -8,9 +8,9 @@ library(forcats)
 library(data.table)
 library(circular)
 
-train_raw <- read.csv("/Users/tamasbarczikay/Desktop/Projects/P2 - R - Bike share/train.csv")
-station_data_raw <- read.csv('/Users/tamasbarczikay/Desktop/Projects/P2 - R - Bike share/station_data.csv')
-weather_data_raw <- read.csv("/Users/tamasbarczikay/Desktop/Projects/P2 - R - Bike share/weather_data.csv")
+train_raw <- read.csv("/Users/tamasbarczikay/R_projects/R_project_1/train.csv")
+station_data_raw <- read.csv('/Users/tamasbarczikay/R_projects/R_project_1/station_data.csv')
+weather_data_raw <- read.csv("/Users/tamasbarczikay/R_projects/R_project_1/weather_data.csv")
 
 ################################################################################
 # Cleaning dataset
@@ -119,12 +119,10 @@ station_data_raw <- station_data_raw %>%
 # 808 - Keleti pályaudvar - num_of_rack +6/+6 - 2015-03-19 21:30:01 and 2015-05-23 14:50:03
 
 filtered_train_raw <- train_raw %>%
-  filter(start_location %in% c(508, 518, 806, 808)) %>%
-  select(bicycle_id, start_time, start_location)
+  filter(start_location %in% c(508, 518, 806, 808))
 
 filtered_station_data_raw <- station_data_raw %>%
-  filter(place_id %in% c(508, 518, 806, 808)) %>%
-  select(-lat, -lng)
+  filter(place_id %in% c(508, 518, 806, 808))
 
 joined_data <- left_join(filtered_train_raw, 
                          filtered_station_data_raw, 
@@ -184,8 +182,8 @@ sum(weather_data_raw$windchillm == -999)
 # No variability - only 0 velues - drop
 unique(weather_data_raw$hail)
 
-weather_data_raw <- weather_data_raw %>%
-  select(-vism, -windchillm, -hail)
+weather_data_raw <- weather_data_raw[, !names(weather_data_raw) %in% c("vism", "windchillm", "hail")]
+
 ################################################################################
 # Explore how the weather affects lending.
 ################################################################################
@@ -215,9 +213,10 @@ result <- result %>%
 
 # Add hour variable and drop non needed column
 result <- result %>%
-  mutate(hour = hour(as.POSIXct(time, format = "%Y-%m-%d %H:%M:%S"))) %>%
-  select(-time_slot, -time, -wdire, -wdird)
+  mutate(hour = hour(as.POSIXct(time, format = "%Y-%m-%d %H:%M:%S")))
 
+# Remove the unwanted columns
+result <- result[, !names(result) %in% c("time_slot", "time", "wdire", "wdird")]
 
 # Run regression
 model <- lm(number_of_observations ~ ., data = result)
